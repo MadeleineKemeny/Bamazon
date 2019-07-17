@@ -3,7 +3,7 @@ CREATE DATABASE bamazon_DB;
 
 USE bamazon_DB;
 
-CREATE TABLE inventory(
+CREATE TABLE products(
   id INT NOT NULL AUTO_INCREMENT,
   category VARCHAR(45) NOT NULL,
   item_name VARCHAR(100) NOT NULL,

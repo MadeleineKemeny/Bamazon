@@ -14,158 +14,39 @@ var connection = mysql.createConnection({
 // connect to the mysql server and sql database
 connection.connect(function (err) {
   if (err) throw err;
-  console.log("id ", connection.threadId)
+  //console.log("id ", connection.threadId)
   // run the start function after the connection is made to prompt the user
   start();
 });
 
-// function which prompts the user for what action they should take
+
+
+
 function start() {
-
-  selectItem();
-  // inquirer
-  //   .prompt({
-  //     name: "shoppingCategories",
-  //     type: "list",
-  //     message: "Would you like to shop for [HOUSEWARES], [BOOKS], or [PET-SUPPLIES] on Bamazon?",
-  //     choices: ["HOUSEWARES", "BOOKS", "PET-SUPPLIES", "EXIT"]
-  //   })
-  //   .then(function(answer) {
-  //     console.log(answer)
-  //     // based on their answer, call the functions
-  //     if (answer.shoppingCategories === "HOUSEWARES") {
-  //       shopHousewares();
-  //     }
-  //    else if(answer.shoppingCategories === "BOOKS") {
-  //       shopBooks();
-  //     } 
-  //    else if(answer.shoppingCategories === "PET-SUPPLIES") {
-  //       shopPets();
-  //     } 
-  //     else{
-  //       connection.end();
-  //     }
-  //   });
-}
-
-// function to handle items for sale in HOUSEWARES
-function shopHousewares() {
-  // prompt for info about the items available
-  inquirer
-    .prompt([
-      {
-        name: "item",
-        type: "input",
-        message: "What is ID of the item you would like purchase?"
-      }
-
-    ])
-    .then(function (answer) {
-      console.log(answer + "housewares")
-      // when finished prompting, use requests item from db 
-      connection.query(
-        "SELECT * FROM products WHERE id = ?",
-        [answer.item],
-        function (err, res) {
-          if (err) throw err;
-          console.log("Your item was selected successfully!");
-          console.table(res)
-          // re-prompt the user for if they want to continue
-          start();
-        }
-      );
-    });
-}
-
-// function to handle items for sale in BOOKS
-function shopBooks() {
-  // prompt for info about the items available
-  inquirer
-    .prompt([
-      {
-        name: "item",
-        type: "input",
-        message: "What is ID of the item you would like purchase?"
-      },
-
-    ])
-    .then(function (answer) {
-      console.log(answer)
-      // when finished prompting, use requests item from db 
-      connection.query(
-        "INSERT INTO shopping SET ?",
-        {
-          item_name: answer.item,
-          category: answer.category,
-          price: answer.price || 0,
-          quantity: answer.squantity || 0
-        },
-        function (err) {
-          if (err) throw err;
-          console.log("Your item was selected successfully!");
-          // re-prompt the user for if they want to continue
-          start();
-        }
-      );
-    });
-}
-
-// function to handle items for sale in PETS
-function shopPets() {
-  // prompt for info about the items available
-  inquirer
-    .prompt([
-      {
-        name: "item",
-        type: "input",
-        message: "What is ID of the item you would like purchase?"
-      },
-
-    ])
-    .then(function (answer) {
-      console.log(answer)
-      // when finished prompting, use requests item from db 
-      connection.query(
-        "INSERT INTO shopping SET ?",
-        {
-          item_name: answer.item,
-          category: answer.category,
-          price: answer.price || 0,
-          quantity: answer.squantity || 0
-        },
-        function (err) {
-          if (err) throw err;
-          console.log("Your item was selected successfully!");
-          // re-prompt the user for if they want to conitnue
-          start();
-        }
-      );
-    });
-}
-
-function selectItem() {
   // query the database for all items being sold
   connection.query("SELECT * FROM products", function (err, results) {
     if (err) throw err;
+    console.log("\n")
     console.table(results);
-    // once you have the items, prompt the user for which they want to select
+
+    // dsiplay table "products", prompt the user for order selections
     inquirer
       .prompt([
         {
           name: "itemid",
-          type: "input",
+          type: "number",
           validate: function (value) {
             if (isNaN(value) === false)
               return true;
             else
               return false;
           },
-          message: "Which item ID do you want to purchase?"
+          message: "Which item ID (the number at the beginning of the row) are you purchasing? "
         },
         {
           name: "quantity",
           type: "input",
-          message: "How many do you want to purchase?",
+          message: "How many are you purchasing today?",
           validate: function (value) {
             if (isNaN(value) === false)
               return true;
@@ -175,40 +56,35 @@ function selectItem() {
         }
       ])
       .then(function (answer) {
-        // get the information of the chosen item
-        // var chosenItem;
-        // for (var i = 0; i < results.length; i++) {
-        //   if (results[i].item_name === answer.choice) {
-        //     chosenItem = results[i];
-        //   }
-        // }
-
+       
         connection.query("SELECT * FROM products WHERE id= ?", [answer.itemid], function (err, results) {
           if (err) throw err;
-
+        
           // determine if quantity exists
-          if (results.quantity < parseInt(answer.quantity)) {
-            // quantity exists, so update db, let the user know, and start over
+          if (results[0].quantity  >= parseInt(answer.quantity)) {
+            // if quantity exists, then update db (math below), let the user know order was successful, and start over
+            var newStock = results[0].quantity  - parseInt(answer.quantity);
             connection.query(
-              "UPDATE selections SET ? WHERE ?",
+              "UPDATE products SET ? WHERE ?",
               [
                 {
-                  quantity: answer.quantity
+                  quantity: newStock
                 },
                 {
                   id:  answer.itemid
                 }
               ],
-              function (error, results) {
+              function (error, res) {
                 if (error) throw err;
-                console.log("Item selected successfully!");
-                start();
+                console.log("\n" + "Your order has been placed! The total price: ", Math.floor(parseInt(answer.quantity)* results[0].price));
+                // call ask if want more
+                orderMore();
               }
             );
           }
           else {
-            // inventory wasn't high enough, so apologize and start over
-            console.log("Your is selection is greater than the existing inventory. Try again...");
+            //  if quantity doesn't exist, start over
+            console.log("\n" + "Your desired quantity is greater than the existing inventory. Please try again.");
             start();
           }
         })
@@ -216,4 +92,30 @@ function selectItem() {
 
       });
   });
+}
+
+// more inquirer... does the client wish to continue shoping: if yes, call start; if no, stop and close connection and application
+function orderMore(){
+
+  inquirer
+  .prompt([
+    {
+      name: "want",
+      type: "list",
+      choices: ["Y", "N"],
+      message: "\n" + "Are there other items you want to add to this order?"
+    }  
+  ])
+  .then(function (res) {
+    if (res.want === "Y"){
+      start()
+    }
+    else{
+      console.log("\n" + "Thanks for shopping Bamazon! An email updating your order status will arrive shortly.");
+      connection.end()
+      process.exit()
+    }
+
+  })
+
 }
