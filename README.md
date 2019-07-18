@@ -1,4 +1,6 @@
-# Bamazon: bamazonBasic.js
+# Bamazon: https://youtu.be/IyNe3KsyiAI
+
+## Bamazon: bamazonBasic.js
 This is a client-side node application to replicate an online storefron with real-time inventory. The features it currently allows by the user are:
 
 1. selecting a product for sale from a pre-written SQL database; the product is detailed with an ID, item name, price, and quantity in stock
@@ -8,7 +10,7 @@ This is a client-side node application to replicate an online storefron with rea
 
 The data is displayed in a table. The prompts appear in the terminal and the up/down arrow keys are used to navigate the menu of possible actions for the user. The inventory updates as the user inputs her choices. The price is calculated to two decimal places.
 
-# Bamazon: bamazonmgr.js
+## Bamazon: bamazonmgr.js
 This version of bamazon is used by the employee of Bamazon to:
 1. view products for sale
 2. view products that are considered "low inventory"; fewer than 5 in stock
