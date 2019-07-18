@@ -1,6 +1,6 @@
 var mysql = require("mysql")
 var inquirer = require("inquirer")
-const cTable = require('console.table');
+const cTable = require("console.table");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -76,7 +76,7 @@ function start() {
               ],
               function (error, res) {
                 if (error) throw err;
-                console.log("\n" + "Your order has been placed! The total price: ", Math.floor(parseInt(answer.quantity)* results[0].price));
+                console.log("\n" + "Your order has been placed! The total price: ", Number((parseInt(answer.quantity)).toFixed(2)* results[0].price));
                 // call ask if want more
                 orderMore();
               }
